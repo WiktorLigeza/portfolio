@@ -487,35 +487,42 @@ document.addEventListener('DOMContentLoaded', () => {
         window.viewer = viewer;
         
         // Add event listeners for navigation buttons - rotate camera AND control windows
-        document.getElementById('rotateLeft').addEventListener('click', () => {
-            // Check if animations are already running
-            if (viewer.isRotating || (window.windowManager && window.windowManager.isTransitioning)) {
-                return; // Block action if any animation is running
-            }
-            
-            // Rotate camera
-            viewer.rotateViewLeft();
-            
-            // Control windows with synchronized animation
-            if (window.windowManager) {
-                window.windowManager.previousWindow();
-            }
-        });
+        const leftBtn = document.getElementById('rotateLeft');
+        const rightBtn = document.getElementById('rotateRight');
         
-        document.getElementById('rotateRight').addEventListener('click', () => {
-            // Check if animations are already running
-            if (viewer.isRotating || (window.windowManager && window.windowManager.isTransitioning)) {
-                return; // Block action if any animation is running
-            }
-            
-            // Rotate camera  
-            viewer.rotateViewRight();
-            
-            // Control windows with synchronized animation
-            if (window.windowManager) {
-                window.windowManager.nextWindow();
-            }
-        });
+        if (leftBtn) {
+            leftBtn.addEventListener('click', () => {
+                // Check if animations are already running
+                if (viewer.isRotating || (window.windowManager && window.windowManager.isTransitioning)) {
+                    return; // Block action if any animation is running
+                }
+                
+                // Rotate camera
+                viewer.rotateViewLeft();
+                
+                // Control windows with synchronized animation
+                if (window.windowManager) {
+                    window.windowManager.previousWindow();
+                }
+            });
+        }
+        
+        if (rightBtn) {
+            rightBtn.addEventListener('click', () => {
+                // Check if animations are already running
+                if (viewer.isRotating || (window.windowManager && window.windowManager.isTransitioning)) {
+                    return; // Block action if any animation is running
+                }
+                
+                // Rotate camera  
+                viewer.rotateViewRight();
+                
+                // Control windows with synchronized animation
+                if (window.windowManager) {
+                    window.windowManager.nextWindow();
+                }
+            });
+        }
     } else {
         console.error('Three.js not loaded');
     }
@@ -721,9 +728,110 @@ class WindowManager {
 
 }
 
-// Initialize Window Manager
+// Initialize Window Manager - separate from viewer initialization
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize window manager
     window.windowManager = new WindowManager();
+    
+    // Initialize popup windows
+    initPopupWindows();
+    
+    // Debug: Check if elements exist
+    console.log('Navigation buttons found:', {
+        left: !!document.getElementById('rotateLeft'),
+        right: !!document.getElementById('rotateRight')
+    });
+    
+    console.log('Windows found:', {
+        window0: !!document.getElementById('window-0'),
+        window1: !!document.getElementById('window-1'),
+        window2: !!document.getElementById('window-2'),
+        window3: !!document.getElementById('window-3')
+    });
 });
+
+// Popup window management
+function initPopupWindows() {
+    // Get all popup elements
+    const aboutBtn = document.getElementById('aboutBtn');
+    const experienceBtn = document.getElementById('experienceBtn');
+    const contactBtn = document.getElementById('contactBtn');
+    
+    const aboutPopup = document.getElementById('aboutPopup');
+    const experiencePopup = document.getElementById('experiencePopup');
+    const contactPopup = document.getElementById('contactPopup');
+    
+    // Ensure all popups are hidden by default
+    hideAllPopups();
+    
+    // Add click handlers for buttons
+    if (aboutBtn) {
+        aboutBtn.addEventListener('click', () => showPopup(aboutPopup));
+    }
+    
+    if (experienceBtn) {
+        experienceBtn.addEventListener('click', () => showPopup(experiencePopup));
+    }
+    
+    if (contactBtn) {
+        contactBtn.addEventListener('click', () => showPopup(contactPopup));
+    }
+    
+    // Add close button handlers
+    document.querySelectorAll('.popup-close').forEach(closeBtn => {
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const popup = e.target.closest('.popup-overlay');
+            hidePopup(popup);
+        });
+    });
+    
+    // Close popup when clicking overlay
+    document.querySelectorAll('.popup-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                hidePopup(overlay);
+            }
+        });
+    });
+    
+    // Close popup with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const activePopup = document.querySelector('.popup-overlay.active');
+            if (activePopup) {
+                hidePopup(activePopup);
+            }
+        }
+    });
+}
+
+function showPopup(popup) {
+    if (popup) {
+        // Hide any currently active popup first
+        hideAllPopups();
+        
+        // Show the requested popup
+        setTimeout(() => {
+            popup.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }, 50); // Small delay to ensure smooth transition
+    }
+}
+
+function hidePopup(popup) {
+    if (popup) {
+        popup.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+function hideAllPopups() {
+    const allPopups = document.querySelectorAll('.popup-overlay');
+    allPopups.forEach(popup => {
+        popup.classList.remove('active');
+    });
+    document.body.style.overflow = '';
+}
 
 

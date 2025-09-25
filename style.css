@@ -1,3 +1,6 @@
+/* ==============================
+   Base Styles
+============================== */
 body {
     margin: 0;
     padding: 0;
@@ -21,7 +24,9 @@ body {
     display: block;
 }
 
-/* Header Styles */
+/* ==============================
+   Header Styles
+============================== */
 #mainHeader {
     position: fixed;
     top: 0;
@@ -59,37 +64,40 @@ body {
 .header-right {
     display: flex;
     gap: 10px;
+    align-items: center;
 }
 
 .nav-btn {
-    background: rgba(0, 255, 191, 0);
-    color: #00ffc1;
-    box-shadow: 0 -5px 5px rgba(0, 0, 0, 0.5);
-    padding: 12px 16px;
-    border-radius: 6px;
-    cursor: pointer;
+    background: none;
+    border: none;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 25px;
     font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
-    transition: all 0.3s ease;
-    align-self: flex-end; /* Position buttons at the bottom of the navbar */
-    text-decoration: none; /* Remove underline from links */
-    border: none; /* Remove border from buttons/links */
+    gap: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .nav-btn:hover {
-    background:  transparent;
-    transform: translateY(-1px);
-    box-shadow: 0 -5px 5px rgba(255, 0, 255, 0.9);
+    background: rgba(255, 0, 255, 0.1);
+    border-color: rgba(255, 0, 255, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 0, 255, 0.2);
 }
 
 .nav-btn span {
     font-size: 16px;
 }
 
-/* Removed old controls styles - no longer needed */
-
+/* ==============================
+   Buttons
+============================== */
 button {
     background: #444;
     color: white;
@@ -126,9 +134,9 @@ button:hover {
     color: #f44336;
 }
 
-
-
-/* Floating Stream Window */
+/* ==============================
+   Floating Stream & List Windows
+============================== */
 .stream-window {
     position: fixed;
     top: 50%;
@@ -141,9 +149,7 @@ button:hover {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     user-select: none;
     padding-left: 0%;
-    /* backdrop-filter: blur(2px); */
 }
-
 
 .list-window {
     position: fixed;
@@ -160,7 +166,6 @@ button:hover {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     user-select: none;
     padding-left: 0%;
-    /* backdrop-filter: blur(2px); */
 }
 
 .list-window h3 {
@@ -170,6 +175,7 @@ button:hover {
     font-size: 16px;
 }
 
+/* Pallet styling */
 .pallet-container {
     margin-bottom: 20px;
     padding: 10px;
@@ -232,59 +238,9 @@ button:hover {
     border-radius: 3px;
 }
 
-.window-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: bold;
-    font-size: 14px;
-    cursor: move;
-}
-
-.window-title {
-    flex: 1;
-}
-
-.window-controls {
-    display: flex;
-    gap: 5px;
-}
-
-.control-btn {
-    background: none;
-    border: none;
-    color: #000;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    padding: 0;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 3px;
-    transition: background-color 0.2s;
-}
-
-.control-btn {
-    font-size: 16px;
-    font-weight: bolder;
-    background: rgba(0, 255, 191, 0);
-    color: rgb(160, 1, 160);
-}
-
-.control-btn:hover {
-    font-weight: bolder;
-    background: rgba(0, 255, 191, 0);
-    color: rgb(255, 0, 255);
-}
-
-.window-content {
-    padding: 10px;
-    text-align: center;
-}
-
+/* ==============================
+   Stream Content
+============================== */
 .stream-container {
     display: flex;
     flex-direction: column;
@@ -338,159 +294,222 @@ button:hover {
     min-width: 150px;
 }
 
-/* Popup Overlay Styles */
+/* ==============================
+   Popup Styles
+============================== */
 .popup-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
-    backdrop-filter: blur(5px);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.popup-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.popup-window {
+    background: rgba(18, 18, 30, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 0, 255, 0.3);
+    border-radius: 12px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(255, 0, 255, 0.2);
+    transform: scale(0.8) translateY(20px);
+    transition: transform 0.3s ease;
+    position: relative;
+}
+
+.popup-overlay.active .popup-window {
+    transform: scale(1) translateY(0);
+}
+
+.popup-header {
+    padding: 20px 30px;
+    border-bottom: 1px solid rgba(255, 0, 255, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 0, 255, 0.1);
+    border-radius: 12px 12px 0 0;
+}
+
+.popup-header h3 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.popup-close {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.popup-close:hover {
+    background: rgba(255, 0, 255, 0.2);
+    color: #ff00ff;
+    transform: scale(1.1);
 }
 
 .popup-content {
-    background: rgba(0, 255, 191, 0.2);
-    border-radius: 8px;
     padding: 30px;
-    max-width: 500px;
-    width: 90%;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0, 255, 191, 0.3);
-    backdrop-filter: blur(10px);
-}
-
-.popup-content h3 {
-    color: #00ffc1;
-    margin: 0 0 20px 0;
-    font-size: 20px;
-    font-weight: bold;
+    color: #ffffff;
+    line-height: 1.6;
 }
 
 .popup-content p {
-    color: orange;
-    margin: 0 0 25px 0;
-    line-height: 1.5;
-    font-size: 14px;
-    font-weight: bold;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
 }
 
-.popup-buttons {
+/* ==============================
+   Skill Tags
+============================== */
+.skill-tags {
     display: flex;
-    gap: 15px;
-    justify-content: center;
-}
-
-.btn-primary {
-    background: #00ffc1;
-    color: #000;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-    background: #00d4a3;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 255, 191, 0.4);
-}
-
-.btn-secondary {
-    background: transparent;
-    color: #00ffc1;
-    border: 2px solid #00ffc1;
-    padding: 10px 22px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    transition: all 0.3s ease;
-}
-
-.btn-secondary:hover {
-    background: #00ffc1;
-    color: #000;
-    transform: translateY(-1px);
-}
-
-#calibrationProgress {
+    flex-wrap: wrap;
+    gap: 10px;
     margin-top: 20px;
-    color: #00ffc1;
+}
+
+.skill-tag {
+    background: linear-gradient(135deg, rgba(255, 0, 255, 0.2), rgba(255, 0, 255, 0.1));
+    border: 1px solid rgba(255, 0, 255, 0.4);
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.skill-tag:hover {
+    background: linear-gradient(135deg, rgba(255, 0, 255, 0.4), rgba(255, 0, 255, 0.2));
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 0, 255, 0.3);
+}
+
+/* ==============================
+   Experience & Projects
+============================== */
+.experience-item {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid #ff00ff;
+}
+
+.experience-item h4 {
+    margin: 0 0 8px 0;
+    color: #ff00ff;
+    font-size: 1.2rem;
+}
+
+.experience-item .date {
+    color: #cccccc;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
     font-style: italic;
 }
 
-/* Navigation Arrow Buttons */
-.nav-buttons {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 150;
-    pointer-events: none; /* Allow container to be transparent */
+.experience-item p:last-child {
+    margin-bottom: 0;
 }
 
-.nav-arrow-btn {
-    position: fixed;
-    background: rgba(0, 255, 191, 0.2);
-    border: 2px solid #00ffbf;
-    color: #00ffc1;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    cursor: pointer;
+/* ==============================
+   Contact Info
+============================== */
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.contact-item {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 24px;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
     transition: all 0.3s ease;
-    backdrop-filter: blur(5px);
-    pointer-events: all; /* Make buttons clickable */
-    top: 50%;
-    transform: translateY(-50%);
 }
 
-.nav-arrow-btn:hover {
-    background: rgba(0, 255, 191, 0.4);
-    box-shadow: 0 0 20px rgba(0, 255, 191, 0.6);
-    transform: translateY(-50%) scale(1.1);
+.contact-item:hover {
+    background: rgba(255, 0, 255, 0.1);
+    transform: translateX(5px);
 }
 
-.nav-arrow-btn:active {
-    transform: translateY(-50%) scale(0.95);
+.contact-item i {
+    color: #ff00ff;
+    font-size: 1.2rem;
+    width: 20px;
 }
 
-.nav-arrow-btn:disabled,
-.nav-arrow-btn.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    pointer-events: none;
+.contact-item span {
+    font-size: 1.1rem;
 }
 
-.nav-arrow-btn:disabled:hover,
-.nav-arrow-btn.disabled:hover {
-    background: rgba(0, 255, 191, 0.2);
-    box-shadow: none;
-    transform: translateY(-50%) scale(1);
+/* ==============================
+   Project List Styles
+============================== */
+.project-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
-#rotateLeft {
-    left: 20px;
+.project-item {
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid #ff00ff;
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
-#rotateRight {
-    right: 20px;
+.project-item:hover {
+    background: rgba(255, 0, 255, 0.2);
+    transform: translateX(5px);
+    box-shadow: 0 5px 15px rgba(255, 0, 255, 0.2);
 }
 
-/* Floating Windows System */
+/* ==============================
+   -------------------
+   RESTORED OLD FLOATING WINDOWS & NAV
+============================== */
+
+/* --- Floating Windows System (Old Version) --- */
 .floating-windows-container {
     position: fixed;
     top: 55%;
@@ -517,7 +536,6 @@ button:hover {
     overflow: hidden;
 }
 
-/* Disable transitions for entering states to allow instant positioning */
 .floating-window.entering-right,
 .floating-window.entering-left {
     transition: none !important;
@@ -548,6 +566,7 @@ button:hover {
     transform: translateX(100%);
 }
 
+/* --- Window Header (Old Version) --- */
 .window-header {
     padding: 20px 30px;
     display: flex;
@@ -584,132 +603,92 @@ button:hover {
     color: #ff0064;
 }
 
-.window-content {
-    padding: 30px;
-    height: calc(100% - 80px);
-    overflow-y: auto;
-    color: #e0f7fa;
-    line-height: 1.6;
+/* --- Navigation Arrow Buttons (Old Version) --- */
+.nav-buttons {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 150;
+    pointer-events: none;
 }
 
-/* Custom scrollbar */
-.window-content::-webkit-scrollbar {
-    width: 8px;
-}
-
-.window-content::-webkit-scrollbar-track {
-    background: rgba(0, 255, 191, 0.1);
-    border-radius: 4px;
-}
-
-.window-content::-webkit-scrollbar-thumb {
-    background: #00ffbf;
-    border-radius: 4px;
-}
-
-.window-content::-webkit-scrollbar-thumb:hover {
-    background: #00d4a3;
-}
-
-/* Content Styles */
-.skill-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.skill-tag {
+.nav-arrow-btn {
+    position: fixed;
     background: rgba(0, 255, 191, 0.2);
+    border: 2px solid #00ffbf;
     color: #00ffc1;
-    padding: 6px 12px;
-    border-radius: 20px;
-    border: 1px solid #00ffbf;
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.project-item, .experience-item {
-    margin-bottom: 25px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(0, 255, 191, 0.2);
-}
-
-.project-item:last-child, .experience-item:last-child {
-    border-bottom: none;
-}
-
-.project-item h4, .experience-item h4 {
-    color: #00ffc1;
-    margin: 0 0 10px 0;
-    font-size: 18px;
-}
-
-.date {
-    color: #00d4a3;
-    font-size: 14px;
-    font-style: italic;
-    margin-bottom: 10px;
-}
-
-.contact-info {
-    margin-bottom: 30px;
-}
-
-.contact-item {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    color: #e0f7fa;
-}
-
-.contact-item i {
-    color: #00ffc1;
-    width: 20px;
-}
-
-.contact-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.form-input, .form-textarea {
-    background: rgba(0, 255, 191, 0.1);
-    border: 1px solid #00ffbf;
-    border-radius: 6px;
-    padding: 12px 15px;
-    color: #e0f7fa;
-    font-size: 14px;
+    justify-content: center;
+    font-size: 24px;
     transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+    pointer-events: all;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
-.form-input:focus, .form-textarea:focus {
-    outline: none;
-    border-color: #00ffc1;
-    box-shadow: 0 0 10px rgba(0, 255, 191, 0.3);
+.nav-arrow-btn:hover {
+    background: rgba(0, 255, 191, 0.4);
+    box-shadow: 0 0 20px rgba(0, 255, 191, 0.6);
+    transform: translateY(-50%) scale(1.1);
 }
 
-.form-textarea {
-    resize: vertical;
-    min-height: 100px;
+.nav-arrow-btn:active {
+    transform: translateY(-50%) scale(0.95);
 }
 
-.send-btn {
-    background: linear-gradient(45deg, #00ffbf, #00d4a3);
-    color: #000;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
+.nav-arrow-btn:disabled,
+.nav-arrow-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
-.send-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 191, 0.4);
+.nav-arrow-btn:disabled:hover,
+.nav-arrow-btn.disabled:hover {
+    background: rgba(0, 255, 191, 0.2);
+    box-shadow: none;
+    transform: translateY(-50%) scale(1);
 }
 
+#rotateLeft {
+    left: 20px;
+}
 
+#rotateRight {
+    right: 20px;
+}
+
+/* ==============================
+   Responsive Design
+============================== */
+@media (max-width: 768px) {
+    .popup-window {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .popup-header {
+        padding: 15px 20px;
+    }
+
+    .popup-content {
+        padding: 20px;
+    }
+
+    .stream-window, .list-window {
+        width: 90%;
+        min-height: 60%;
+    }
+
+    #mainHeader {
+        padding: 0 10px;
+    }
+}

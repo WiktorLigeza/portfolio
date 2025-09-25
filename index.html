@@ -149,6 +149,15 @@
                 <h2 class="title">Wiktor Ligęza</h2>
             </div>
             <div class="header-right">
+                <button id="aboutBtn" class="nav-btn">
+                    <i class="fas fa-user" style="color: magenta;"></i> About Me
+                </button>
+                <button id="experienceBtn" class="nav-btn">
+                    <i class="fas fa-briefcase" style="color: magenta;"></i> Experience
+                </button>
+                <button id="contactBtn" class="nav-btn">
+                    <i class="fas fa-envelope" style="color: magenta;"></i> Contact
+                </button>
                 <a href="https://www.linkedin.com/in/wiktor-lig%C4%99za-618b4b242/" target="_blank" class="nav-btn">
                     <i class="fab fa-linkedin" style="color: magenta;"></i> LinkedIn
                 </a>
@@ -168,14 +177,61 @@
             </button>
         </div>
 
+
+
         <!-- Floating Windows Container -->
         <div id="floatingWindowsContainer" class="floating-windows-container">
             <div class="floating-window" id="window-0" data-window-index="0">
                 <div class="window-header">
-                    <h3>About Me</h3>
-                    
+                    <h3>Projects</h3>
                 </div>
                 <div class="window-content">
+                    <div class="project-list">
+                        <div class="project-item">Project 1</div>
+                        <div class="project-item">Project 2</div>
+                        <div class="project-item">Project 3</div>
+                        <div class="project-item">Project 4</div>
+                        <div class="project-item">Project 5</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="floating-window" id="window-1" data-window-index="1">
+                <div class="window-header">
+                    <h3>Bin Picking</h3>
+                </div>
+                <div class="window-content">
+                    asdpibaspdibawd
+                </div>
+            </div>
+
+            <div class="floating-window" id="window-2" data-window-index="2">
+                <div class="window-header">
+                    <h3>6-DoF Pallete Detection</h3>
+                </div>
+                <div class="window-content">
+                    asdpibaspdibawd
+                </div>
+            </div>
+
+            <div class="floating-window" id="window-3" data-window-index="3">
+                <div class="window-header">
+                    <h3>Eye Tracker</h3>
+                </div>
+                <div class="window-content">
+                    asdpibaspdibawd
+                </div>
+            </div>
+        </div>
+
+        <!-- Popup Windows -->
+        <div id="aboutPopup" class="popup-overlay">
+            <div class="popup-window">
+                <div class="popup-header">
+                    <h3>About Me</h3>
+                    <button class="popup-close">&times;</button>
+                </div>
+                <div class="popup-content">
                     <p>Welcome to my portfolio! I'm a passionate developer with expertise in robotics, computer vision, and web development.</p>
                     <div class="skill-tags">
                         <span class="skill-tag">Python</span>
@@ -186,34 +242,15 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="floating-window" id="window-1" data-window-index="1">
-                <div class="window-header">
-                    <h3>Projects</h3>
-                    
-                </div>
-                <div class="window-content">
-                    <div class="project-item">
-                        <h4>Pallet Detection System</h4>
-                        <p>Advanced computer vision system for automated pallet detection using deep learning algorithms.</p>
-                    </div>
-                    <div class="project-item">
-                        <h4>Robotic Navigation</h4>
-                        <p>Autonomous navigation system for warehouse robots with real-time path planning.</p>
-                    </div>
-                    <div class="project-item">
-                        <h4>3D Visualization Platform</h4>
-                        <p>Interactive 3D web platform for visualizing complex robotics data.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="floating-window" id="window-2" data-window-index="2">
-                <div class="window-header">
+        <div id="experiencePopup" class="popup-overlay">
+            <div class="popup-window">
+                <div class="popup-header">
                     <h3>Experience</h3>
-                    
+                    <button class="popup-close">&times;</button>
                 </div>
-                <div class="window-content">
+                <div class="popup-content">
                     <div class="experience-item">
                         <h4>Robotics Engineer @ APENUM</h4>
                         <p class="date">2023 - Present</p>
@@ -226,12 +263,15 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="floating-window" id="window-3" data-window-index="3">
-                <div class="window-header">
+        <div id="contactPopup" class="popup-overlay">
+            <div class="popup-window">
+                <div class="popup-header">
                     <h3>Contact</h3>
+                    <button class="popup-close">&times;</button>
                 </div>
-                <div class="window-content">
+                <div class="popup-content">
                     <div class="contact-info">
                         <div class="contact-item">
                             <i class="fas fa-envelope"></i>
@@ -245,9 +285,7 @@
                             <i class="fas fa-map-marker-alt"></i>
                             <span>Kraków, Poland</span>
                         </div>
- 
                     </div>
-
                 </div>
             </div>
         </div>
