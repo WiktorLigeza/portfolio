@@ -11,6 +11,12 @@ class ThreeJSViewer {
         this.config = null;
         this.animationId = null;
         this.isRotating = false;
+        
+        // Mouse following properties
+        this.mouse = { x: 0, y: 0 };
+        this.mouseFollowSpeed = 0.08;
+        this.mouseFollowSensitivity = 1.5;
+        this.cameraDistance = 6;
     }
 
     async init(config) {
@@ -112,7 +118,10 @@ class ThreeJSViewer {
     async setupControls() {
         this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
         
-        // Configure orbital movement
+        // Disable default mouse controls since we'll implement custom mouse following
+        this.controls.enabled = false;
+        
+        // Configure orbital movement for when we manually update
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.05;
         this.controls.screenSpacePanning = false;
@@ -134,7 +143,38 @@ class ThreeJSViewer {
         this.controls.autoRotate = false; // Set to true for automatic rotation
         this.controls.autoRotateSpeed = 2.0;
         
+        // Initialize mouse following
+        this.setupMouseFollowing();
+        
         this.controls.update();
+    }
+
+    setupMouseFollowing() {
+        // Add mouse move listener to track mouse position
+        document.addEventListener('mousemove', (event) => {
+            // Convert mouse coordinates to normalized device coordinates (-1 to +1)
+            const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            // Smoothly update mouse position
+            this.mouse.x += (mouseX - this.mouse.x) * this.mouseFollowSpeed;
+            this.mouse.y += (mouseY - this.mouse.y) * this.mouseFollowSpeed;
+        });
+    }
+
+    updateCameraFromMouse() {
+        // Calculate spherical coordinates based on mouse position
+        const theta = this.mouse.x * this.mouseFollowSensitivity; // Horizontal rotation
+        const phi = (this.mouse.y * 0.5 + 0.5) * Math.PI * 0.8 + 0.1; // Vertical rotation (limited range)
+        
+        // Convert spherical to cartesian coordinates
+        const x = this.cameraDistance * Math.sin(phi) * Math.cos(theta);
+        const z = this.cameraDistance * Math.sin(phi) * Math.sin(theta);
+        const y = this.cameraDistance * Math.cos(phi);
+        
+        // Update camera position smoothly
+        this.camera.position.set(x, y, z);
+        this.camera.lookAt(0, 0, 0); // Always look at center
     }
 
     createGridAndAxes(warehouseId) {
@@ -159,6 +199,11 @@ class ThreeJSViewer {
 
     animate() {
         this.animationId = requestAnimationFrame(() => this.animate());
+        
+        // Always update camera position based on mouse movement (except during rotation animations)
+        if (!this.isRotating) {
+            this.updateCameraFromMouse();
+        }
         
         // Update controls for smooth orbital movement
         if (this.controls) {
@@ -265,18 +310,13 @@ class ThreeJSViewer {
         requestAnimationFrame(animate);
     }
 
-    // Method to toggle auto-rotation
-    toggleAutoRotate() {
-        if (this.controls) {
-            this.controls.autoRotate = !this.controls.autoRotate;
-        }
-    }
-
     // Method to reset camera position
     resetCameraPosition() {
         if (this.camera && this.controls) {
-            const initialPosition = {x: 2.8655646377178905, y: 1.861485476788222, z: 4.617727918226375};
-            this.camera.position.set(initialPosition.x, initialPosition.y, initialPosition.z);
+            // Reset mouse tracking to center
+            this.mouse.x = 0;
+            this.mouse.y = 0;
+            
             this.controls.target.set(0, 0, 0);
             this.controls.update();
         }
@@ -416,9 +456,6 @@ document.addEventListener('keydown', (event) => {
     switch(event.code) {
         case 'KeyR':
             viewer.resetCameraPosition();
-            break;
-        case 'KeyA':
-            viewer.toggleAutoRotate();
             break;
     }
 });
