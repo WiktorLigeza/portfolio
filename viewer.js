@@ -26,8 +26,8 @@ class ThreeJSViewer {
         // Start render loop
         this.animate();
         
-        // Load forklift model
-        await this.modelLoader.loadForkliftModel(this.scene, 0);
+        // Removed placeholder forklift model
+        // await this.modelLoader.loadForkliftModel(this.scene, 0);
     }
 
     async initScene() {
@@ -103,8 +103,9 @@ class ThreeJSViewer {
     }
 
     async initHelpers() {
-        this.createGridAndAxes(0);
-        this.createCameraFOV(0);
+        // Removed grid and axes helpers
+        // this.createGridAndAxes(0);
+        // this.createCameraFOV(0);
     }
 
     async setupControls() {
@@ -256,19 +257,10 @@ class ModelLoader {
     
     async loadForkliftModel(scene, warehouseId) {
         try {
-            // Placeholder for forklift model loading
-            // Replace with actual model path when available
-            console.log(`Loading forklift model for warehouse ${warehouseId}`);
+            // Placeholder for forklift model loading when needed
+            console.log(`Model loader ready for warehouse ${warehouseId}`);
             
-            // Create a placeholder box for now
-            const geometry = new THREE.BoxGeometry(1, 1, 2);
-            const material = new THREE.MeshPhongMaterial({ color: 0xffaa00 });
-            const forklift = new THREE.Mesh(geometry, material);
-            forklift.position.set(0, 0.5, 0);
-            forklift.name = `forklift_${warehouseId}`;
-            forklift.castShadow = true;
-            forklift.receiveShadow = true;
-            scene.add(forklift);
+            // No placeholder objects added - clean scene
             
         } catch (error) {
             console.error('Error loading forklift model:', error);
