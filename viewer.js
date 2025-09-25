@@ -217,6 +217,11 @@ class ThreeJSViewer {
         
         this.isRotating = true;
         
+        // Disable navigation buttons during camera rotation
+        if (window.windowManager) {
+            window.windowManager.toggleNavigationButtons(false);
+        }
+        
         // Get current camera position relative to target
         const targetPosition = this.controls.target.clone();
         const startPosition = this.camera.position.clone().sub(targetPosition);
@@ -249,6 +254,11 @@ class ThreeJSViewer {
                 this.isRotating = false;
                 // Update controls after animation completes
                 this.controls.update();
+                
+                // Re-enable navigation buttons after camera animation completes
+                if (window.windowManager) {
+                    window.windowManager.toggleNavigationButtons(true);
+                }
             }
         };
         
@@ -363,6 +373,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Add event listeners for navigation buttons - rotate camera AND control windows
         document.getElementById('rotateLeft').addEventListener('click', () => {
+            // Check if animations are already running
+            if (viewer.isRotating || (window.windowManager && window.windowManager.isTransitioning)) {
+                return; // Block action if any animation is running
+            }
+            
             // Rotate camera
             viewer.rotateViewLeft();
             
@@ -373,6 +388,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         document.getElementById('rotateRight').addEventListener('click', () => {
+            // Check if animations are already running
+            if (viewer.isRotating || (window.windowManager && window.windowManager.isTransitioning)) {
+                return; // Block action if any animation is running
+            }
+            
             // Rotate camera  
             viewer.rotateViewRight();
             
@@ -411,6 +431,7 @@ class WindowManager {
         this.isTransitioning = false;
         this.isWindowsVisible = false; // Start hidden
         this.lastDirection = 'right'; // Track animation direction
+        this.defaultWindow = 0; // Default window to show first
         
         this.init();
     }
@@ -436,6 +457,31 @@ class WindowManager {
                 }
             }
         });
+
+        // Show default window after a short delay
+        setTimeout(() => {
+            this.showWindow(this.defaultWindow, false); // Show without animation initially
+        }, 1000);
+    }
+    
+    // Method to disable/enable navigation buttons
+    toggleNavigationButtons(enabled) {
+        const leftBtn = document.getElementById('rotateLeft');
+        const rightBtn = document.getElementById('rotateRight');
+        
+        if (leftBtn && rightBtn) {
+            leftBtn.disabled = !enabled;
+            rightBtn.disabled = !enabled;
+            
+            // Add visual feedback
+            if (enabled) {
+                leftBtn.classList.remove('disabled');
+                rightBtn.classList.remove('disabled');
+            } else {
+                leftBtn.classList.add('disabled');
+                rightBtn.classList.add('disabled');
+            }
+        }
     }
     
     hideAllWindows() {
@@ -461,6 +507,8 @@ class WindowManager {
         
         if (animate) {
             this.isTransitioning = true;
+            // Disable navigation buttons during transition
+            this.toggleNavigationButtons(false);
         }
         
         // Hide current window with exit animation based on direction
@@ -522,10 +570,12 @@ class WindowManager {
                 });
             }, 800);
             
-            // Clear transition flag
+            // Clear transition flag and re-enable buttons
             if (animate) {
                 setTimeout(() => {
                     this.isTransitioning = false;
+                    // Re-enable navigation buttons after transition completes
+                    this.toggleNavigationButtons(true);
                 }, 800);
             } else {
                 this.isTransitioning = false;

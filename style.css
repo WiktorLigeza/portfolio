@@ -233,10 +233,6 @@ button:hover {
 }
 
 .window-header {
-    background: linear-gradient(90deg, #00ffbf48, #00d4a3);
-    color: #000;
-    padding: 8px 12px;
-    border-radius: 6px 6px 0 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -472,6 +468,20 @@ button:hover {
     transform: translateY(-50%) scale(0.95);
 }
 
+.nav-arrow-btn:disabled,
+.nav-arrow-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.nav-arrow-btn:disabled:hover,
+.nav-arrow-btn.disabled:hover {
+    background: rgba(0, 255, 191, 0.2);
+    box-shadow: none;
+    transform: translateY(-50%) scale(1);
+}
+
 #rotateLeft {
     left: 20px;
 }
@@ -483,11 +493,11 @@ button:hover {
 /* Floating Windows System */
 .floating-windows-container {
     position: fixed;
-    top: 50%;
+    top: 55%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 60vw;
-    height: 90vh;
+    width: 70vw;
+    height: 85vh;
     z-index: 100;
     pointer-events: none;
 }
@@ -498,11 +508,8 @@ button:hover {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 20, 40, 0.95);
-    border: 2px solid #00ffbf;
     border-radius: 12px;
     backdrop-filter: blur(10px);
-    box-shadow: 0 0 30px rgba(0, 255, 191, 0.3);
     opacity: 0;
     transform: translateX(100%);
     transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
