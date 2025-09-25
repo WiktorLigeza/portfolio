@@ -84,6 +84,11 @@ body {
     border: none; /* Remove border from buttons/links */
 }
 
+.project-description{
+    color: rgb(0, 255, 193);
+    font-weight: bold;
+}
+
 .nav-btn:hover {
     background:  transparent;
     transform: translateY(-1px);
