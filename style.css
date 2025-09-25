@@ -74,6 +74,8 @@ body {
     gap: 6px;
     transition: all 0.3s ease;
     align-self: flex-end; /* Position buttons at the bottom of the navbar */
+    text-decoration: none; /* Remove underline from links */
+    border: none; /* Remove border from buttons/links */
 }
 
 .nav-btn:hover {
