@@ -17,6 +17,9 @@ class ThreeJSViewer {
         this.mouseFollowSpeed = 0.08;
         this.mouseFollowSensitivity = 1.5;
         this.cameraDistance = 6;
+        this.mouseFollowEnabled = true; // Add flag to control mouse following
+        this.lastMouseX = 0;
+        this.lastMouseY = 0;
     }
 
     async init(config) {
@@ -150,31 +153,87 @@ class ThreeJSViewer {
     }
 
     setupMouseFollowing() {
+        // Initialize mouse position based on current camera position
+        this.updateMouseFromCamera();
+        
         // Add mouse move listener to track mouse position
         document.addEventListener('mousemove', (event) => {
-            // Convert mouse coordinates to normalized device coordinates (-1 to +1)
-            const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-            const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            // Only update mouse tracking when not rotating
+            if (!this.isRotating && this.mouseFollowEnabled) {
+                // Convert mouse coordinates to normalized device coordinates (-1 to +1)
+                const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+                
+                // Apply mouse delta to current mouse position instead of absolute positioning
+                const deltaX = mouseX - this.lastMouseX;
+                const deltaY = mouseY - this.lastMouseY;
+                
+                // Update mouse position with delta
+                this.mouse.x += deltaX * this.mouseFollowSensitivity;
+                this.mouse.y += deltaY * this.mouseFollowSensitivity;
+                
+                // Clamp mouse values to reasonable range
+                this.mouse.x = Math.max(-2, Math.min(2, this.mouse.x));
+                this.mouse.y = Math.max(-1, Math.min(1, this.mouse.y));
+            }
             
-            // Smoothly update mouse position
-            this.mouse.x += (mouseX - this.mouse.x) * this.mouseFollowSpeed;
-            this.mouse.y += (mouseY - this.mouse.y) * this.mouseFollowSpeed;
+            // Always track last mouse position for delta calculation
+            this.lastMouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            this.lastMouseY = -(event.clientY / window.innerHeight) * 2 + 1;
         });
+        
+        // Initialize last mouse position
+        this.lastMouseX = 0;
+        this.lastMouseY = 0;
     }
 
     updateCameraFromMouse() {
         // Calculate spherical coordinates based on mouse position
-        const theta = this.mouse.x * this.mouseFollowSensitivity; // Horizontal rotation
+        const theta = this.mouse.x * this.mouseFollowSensitivity; // Apply sensitivity here
         const phi = (this.mouse.y * 0.5 + 0.5) * Math.PI * 0.8 + 0.1; // Vertical rotation (limited range)
         
-        // Convert spherical to cartesian coordinates
-        const x = this.cameraDistance * Math.sin(phi) * Math.cos(theta);
-        const z = this.cameraDistance * Math.sin(phi) * Math.sin(theta);
-        const y = this.cameraDistance * Math.cos(phi);
+        // Ensure phi is within valid bounds
+        const clampedPhi = Math.max(0.1, Math.min(Math.PI - 0.1, phi));
         
-        // Update camera position smoothly
-        this.camera.position.set(x, y, z);
+        // Convert spherical to cartesian coordinates
+        const x = this.cameraDistance * Math.sin(clampedPhi) * Math.cos(theta);
+        const z = this.cameraDistance * Math.sin(clampedPhi) * Math.sin(theta);
+        const y = this.cameraDistance * Math.cos(clampedPhi);
+        
+        // Smoothly interpolate to new position to avoid jittery movement
+        const targetPosition = new THREE.Vector3(x, y, z);
+        this.camera.position.lerp(targetPosition, this.mouseFollowSpeed);
         this.camera.lookAt(0, 0, 0); // Always look at center
+    }
+
+    // Method to update mouse position based on current camera position
+    updateMouseFromCamera() {
+        // Get current camera position relative to center
+        const position = this.camera.position.clone();
+        const distance = position.length();
+        
+        // Update camera distance to match current position
+        this.cameraDistance = distance;
+        
+        // Convert to spherical coordinates
+        const phi = Math.acos(Math.max(-1, Math.min(1, position.y / distance))); // Clamp to avoid NaN
+        const theta = Math.atan2(position.z, position.x);
+        
+        // Convert back to mouse coordinates with proper normalization
+        this.mouse.x = theta / this.mouseFollowSensitivity;
+        this.mouse.y = ((phi - 0.1) / (Math.PI * 0.8) - 0.5) * 2;
+        
+        // Normalize theta to stay within -π to π range
+        while (this.mouse.x > Math.PI / this.mouseFollowSensitivity) {
+            this.mouse.x -= (2 * Math.PI) / this.mouseFollowSensitivity;
+        }
+        while (this.mouse.x < -Math.PI / this.mouseFollowSensitivity) {
+            this.mouse.x += (2 * Math.PI) / this.mouseFollowSensitivity;
+        }
+        
+        // Clamp mouse values to reasonable range
+        this.mouse.x = Math.max(-4, Math.min(4, this.mouse.x)); // Increased range for better rotation
+        this.mouse.y = Math.max(-1, Math.min(1, this.mouse.y));
     }
 
     createGridAndAxes(warehouseId) {
@@ -200,8 +259,8 @@ class ThreeJSViewer {
     animate() {
         this.animationId = requestAnimationFrame(() => this.animate());
         
-        // Always update camera position based on mouse movement (except during rotation animations)
-        if (!this.isRotating) {
+        // Only update camera position based on mouse movement when enabled and not rotating
+        if (!this.isRotating && this.mouseFollowEnabled) {
             this.updateCameraFromMouse();
         }
         
@@ -262,6 +321,9 @@ class ThreeJSViewer {
         
         this.isRotating = true;
         
+        // Disable mouse following during rotation
+        this.mouseFollowEnabled = false;
+        
         // Disable navigation buttons during camera rotation
         if (window.windowManager) {
             window.windowManager.toggleNavigationButtons(false);
@@ -297,13 +359,26 @@ class ThreeJSViewer {
                 requestAnimationFrame(animate);
             } else {
                 this.isRotating = false;
-                // Update controls after animation completes
-                this.controls.update();
                 
-                // Re-enable navigation buttons after camera animation completes
-                if (window.windowManager) {
-                    window.windowManager.toggleNavigationButtons(true);
-                }
+                // Ensure camera is exactly at end position to avoid floating point errors
+                this.camera.position.copy(targetPosition.clone().add(endPosition));
+                this.camera.lookAt(this.controls.target);
+                
+                // Update mouse position to match the new camera position with a small delay
+                setTimeout(() => {
+                    this.updateMouseFromCamera();
+                    
+                    // Re-enable mouse following
+                    this.mouseFollowEnabled = true;
+                    
+                    // Update controls after animation completes
+                    this.controls.update();
+                    
+                    // Re-enable navigation buttons after camera animation completes
+                    if (window.windowManager) {
+                        window.windowManager.toggleNavigationButtons(true);
+                    }
+                }, 50);
             }
         };
         
