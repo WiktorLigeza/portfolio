@@ -755,10 +755,12 @@ function initPopupWindows() {
     // Get all popup elements
     const aboutBtn = document.getElementById('aboutBtn');
     const experienceBtn = document.getElementById('experienceBtn');
+    const educationBtn = document.getElementById('educationBtn');
     const contactBtn = document.getElementById('contactBtn');
     
     const aboutPopup = document.getElementById('aboutPopup');
     const experiencePopup = document.getElementById('experiencePopup');
+    const educationPopup = document.getElementById('educationPopup');
     const contactPopup = document.getElementById('contactPopup');
     
     // Ensure all popups are hidden by default
@@ -771,6 +773,10 @@ function initPopupWindows() {
     
     if (experienceBtn) {
         experienceBtn.addEventListener('click', () => showPopup(experiencePopup));
+    }
+    
+    if (educationBtn) {
+        educationBtn.addEventListener('click', () => showPopup(educationPopup));
     }
     
     if (contactBtn) {
