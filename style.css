@@ -549,12 +549,11 @@ button:hover {
 }
 
 .window-header {
-    background: rgba(0, 255, 191, 0.1);
-    border-bottom: 1px solid #00ffbf;
     padding: 20px 30px;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
+    gap: 20px;
 }
 
 .window-header h3 {
