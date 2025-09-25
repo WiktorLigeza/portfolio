@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apenum - Pallet Detection</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/apenum.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="container">
+        <header id="mainHeader">
+            <div class="header-left">
+                <div class="logo">
+                    <!-- <img src="{{ url_for('static', filename='images/apenum.svg') }}" alt="APENUM ROBOTICS"> -->
+                </div>
+                <h5 class="title">6-DoF Pallet Detection</h5>
+            </div>
+            <div class="header-right">
+                <button id="settingsBtn" class="nav-btn" >
+                    <i class="fa-solid fa-gear"  style="color: magenta;"></i> Settings
+                </button>
+                <button id="servicesBtn" class="nav-btn">
+                    <i class="fa-solid fa-wrench"  style="color: magenta;"></i> Services
+                </button>
+                <button id="calibrationBtn" class="nav-btn">
+                    <i class="fa-solid fa-ruler" style="color: magenta;"></i> Calibration
+                </button>
+            </div>
+        </header>
+        
+        <div id="status">
+            <div>Connection: <span id="connectionStatus" class="disconnected">Disconnected</span></div>
+            <div>FPS: <span id="fpsCounter">0</span></div>
+        </div>
+    </div>
+    <!-- Floating Stream Window -->
+    <div id="streamWindow" class="stream-window">
+        <div class="window-content">
+            <div class="stream-container">
+                <div class="stream-item">
+                    <img id="streamVideo" src="" alt="Combined Stream" style="display: none; width: 320px; height: 480px;">
+                </div>
+            </div>
+            <div id="streamStatus" class="stream-status">Disconnected</div>
+        </div>
+    </div>
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script type="module" src="viewer.js"></script>
+
+</body>
+</html>
