@@ -841,3 +841,45 @@ function hideAllPopups() {
 }
 
 
+const imageContainer = document.querySelector(".image-container");
+const spans = document.querySelectorAll(".image-container span");
+
+let x = 0;
+const angleStep = 45; // each image is 45deg apart
+const frontOffset = 45; // offset the focus to one image left
+
+imageContainer.addEventListener("click", (e) => {
+  const rect = imageContainer.getBoundingClientRect();
+  const clickX = e.clientX - rect.left; // click position inside container
+  const width = rect.width;
+
+  if (clickX < width * 0.25) {
+    // clicked left 25%
+    x += angleStep;
+    rotate();
+  } else if (clickX > width * 0.75) {
+    // clicked right 25%
+    x -= angleStep;
+    rotate();
+  }
+  // middle 50% does nothing
+});
+
+function rotate() {
+  imageContainer.style.transform = `perspective(1000px) rotateY(${x}deg)`;
+
+  spans.forEach((span, i) => {
+    const relativeAngle = ((i * angleStep + x + frontOffset) % 360 + 360) % 360; // normalize 0-360
+    const angleDistance = Math.min(relativeAngle, 360 - relativeAngle);
+
+    const blur = Math.min(angleDistance / 10, 8); // max 8px blur
+    const opacity = Math.max(1 - angleDistance / 180, 0.3); // min 0.3 opacity
+
+    span.style.filter = `blur(${blur}px)`;
+    span.style.opacity = opacity;
+  });
+}
+
+// Initial call
+rotate();
+
