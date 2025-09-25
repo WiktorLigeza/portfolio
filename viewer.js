@@ -231,7 +231,7 @@ class ThreeJSViewer {
         const endPosition = startPosition.clone().applyMatrix4(rotationMatrix);
         
         // Animation parameters
-        const duration = 800; // milliseconds
+        const duration = 1500; // milliseconds
         const startTime = performance.now();
         
         const animate = (currentTime) => {
