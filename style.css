@@ -510,6 +510,12 @@ button:hover {
     overflow: hidden;
 }
 
+/* Disable transitions for entering states to allow instant positioning */
+.floating-window.entering-right,
+.floating-window.entering-left {
+    transition: none !important;
+}
+
 .floating-window.active {
     opacity: 1;
     transform: translateX(0);

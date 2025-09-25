@@ -445,7 +445,7 @@ class WindowManager {
         if (this.currentWindow >= 0) {
             const currentWindowEl = document.getElementById(`window-${this.currentWindow}`);
             currentWindowEl.classList.remove('active');
-            currentWindowEl.classList.add('exiting-right'); // Exit to right
+            currentWindowEl.classList.add('exiting-right'); // Always exit to right when closing
             
             // Reset after animation
             setTimeout(() => {
@@ -466,7 +466,8 @@ class WindowManager {
         // Hide current window with exit animation based on direction
         if (this.currentWindow >= 0 && this.currentWindow !== index) {
             const currentWindowEl = document.getElementById(`window-${this.currentWindow}`);
-            // Use lastDirection to determine exit direction
+            // When going right (next), current window exits to the left
+            // When going left (previous), current window exits to the right
             const exitDirection = this.lastDirection === 'right' ? 'exiting-left' : 'exiting-right';
             
             if (animate) {
@@ -480,23 +481,46 @@ class WindowManager {
             const newWindowEl = document.getElementById(`window-${index}`);
             
             if (animate && this.currentWindow >= 0) {
-                // Use lastDirection to determine enter direction  
+                // When going right (next), new window enters from the right
+                // When going left (previous), new window enters from the left
                 const enterDirection = this.lastDirection === 'right' ? 'entering-right' : 'entering-left';
                 
-                // Reset position for animation
-                newWindowEl.classList.remove('exiting-left', 'exiting-right', 'entering-left', 'entering-right');
+                // Reset all animation classes first
+                newWindowEl.classList.remove('exiting-left', 'exiting-right', 'entering-left', 'entering-right', 'active');
+                
+                // Set the starting position for the animation (no transition)
                 newWindowEl.classList.add(enterDirection);
                 
-                // Trigger reflow
+                // Force a reflow to ensure the starting position is applied
                 newWindowEl.offsetHeight;
                 
-                // Start enter animation
-                newWindowEl.classList.remove(enterDirection);
+                // Remove entering class to enable transitions, then add active class
+                requestAnimationFrame(() => {
+                    newWindowEl.classList.remove(enterDirection);
+                    // Small delay to ensure transition is re-enabled
+                    setTimeout(() => {
+                        newWindowEl.classList.add('active');
+                    }, 10);
+                });
+            } else {
+                // No animation needed, just show directly
+                newWindowEl.classList.add('active');
             }
             
-            newWindowEl.classList.add('active');
+            
             this.currentWindow = index;
             this.isWindowsVisible = true;
+            
+            // Clean up classes after animation completes
+            setTimeout(() => {
+                // Clean up old window
+                const allWindows = document.querySelectorAll('.floating-window');
+                allWindows.forEach(window => {
+                    if (window.id !== `window-${index}`) {
+                        window.classList.remove('exiting-left', 'exiting-right', 'entering-left', 'entering-right');
+                    }
+                });
+            }, 800);
             
             // Clear transition flag
             if (animate) {
