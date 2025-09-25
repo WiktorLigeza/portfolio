@@ -697,11 +697,12 @@ button:hover {
 .image-container {
     position: relative;
     margin: 150px auto 0;
-    width: 200px;
-    height: 200px;
+    max-width: 200px;
+    max-height: 200px;
     transform-style: preserve-3d;
     transform: perspective(1000px) rotateY(0deg) translateX(-50%);
     transition: transform 0.7s;
+    border-radius: 8px;
 }
 
 .image-container span {
@@ -715,6 +716,7 @@ button:hover {
     /* Make further images look blurred/faded */
     filter: blur(calc(var(--blur, 0px)));
     opacity: calc(var(--opacity, 1));
+    border-radius: 8px;
 }
 
 .image-container span img {
@@ -723,7 +725,9 @@ button:hover {
     top: 0;
     width: 100%;
     display: block;
+    border-radius: 8px;
 }
+
 
 .btn-container {
   position: relative;

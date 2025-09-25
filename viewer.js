@@ -841,45 +841,100 @@ function hideAllPopups() {
 }
 
 
-const imageContainer = document.querySelector(".image-container");
-const spans = document.querySelectorAll(".image-container span");
+// Image rotation functionality for multiple containers
+class ImageRotationManager {
+    constructor() {
+        this.containers = new Map();
+        this.angleStep = 45; // each image is 45deg apart
+        this.frontOffset = 45; // offset the focus to one image left
+        this.init();
+    }
 
-let x = 0;
-const angleStep = 45; // each image is 45deg apart
-const frontOffset = 45; // offset the focus to one image left
+    init() {
+        // Find all image containers and initialize them
+        document.querySelectorAll('.image-container').forEach(container => {
+            const containerId = container.id;
+            this.containers.set(containerId, {
+                element: container,
+                spans: container.querySelectorAll('span'),
+                x: 0
+            });
 
-imageContainer.addEventListener("click", (e) => {
-  const rect = imageContainer.getBoundingClientRect();
-  const clickX = e.clientX - rect.left; // click position inside container
-  const width = rect.width;
+            // Add click listener for each container
+            container.addEventListener("click", (e) => {
+                this.handleContainerClick(e, containerId);
+            });
 
-  if (clickX < width * 0.25) {
-    // clicked left 25%
-    x += angleStep;
-    rotate();
-  } else if (clickX > width * 0.75) {
-    // clicked right 25%
-    x -= angleStep;
-    rotate();
-  }
-  // middle 50% does nothing
-});
+            // Initial rotation
+            this.rotate(containerId);
+        });
+    }
 
-function rotate() {
-  imageContainer.style.transform = `perspective(1000px) rotateY(${x}deg)`;
+    handleContainerClick(e, containerId) {
+        const containerData = this.containers.get(containerId);
+        if (!containerData) return;
 
-  spans.forEach((span, i) => {
-    const relativeAngle = ((i * angleStep + x + frontOffset) % 360 + 360) % 360; // normalize 0-360
-    const angleDistance = Math.min(relativeAngle, 360 - relativeAngle);
+        const rect = containerData.element.getBoundingClientRect();
+        const clickX = e.clientX - rect.left; // click position inside container
+        const width = rect.width;
 
-    const blur = Math.min(angleDistance / 10, 8); // max 8px blur
-    const opacity = Math.max(1 - angleDistance / 180, 0.3); // min 0.3 opacity
+        if (clickX < width * 0.25) {
+            // clicked left 25%
+            containerData.x += this.angleStep;
+            this.rotate(containerId);
+        } else if (clickX > width * 0.75) {
+            // clicked right 25%
+            containerData.x -= this.angleStep;
+            this.rotate(containerId);
+        }
+        // middle 50% does nothing
+    }
 
-    span.style.filter = `blur(${blur}px)`;
-    span.style.opacity = opacity;
-  });
+    rotate(containerId) {
+        const containerData = this.containers.get(containerId);
+        if (!containerData) return;
+
+        const { element, spans, x } = containerData;
+        
+        element.style.transform = `perspective(1000px) rotateY(${x}deg)`;
+
+        spans.forEach((span, i) => {
+            const relativeAngle = ((i * this.angleStep + x + this.frontOffset) % 360 + 360) % 360; // normalize 0-360
+            const angleDistance = Math.min(relativeAngle, 360 - relativeAngle);
+
+            const blur = Math.min(angleDistance / 10, 8); // max 8px blur
+            const opacity = Math.max(1 - angleDistance / 180, 0.3); // min 0.3 opacity
+
+            span.style.filter = `blur(${blur}px)`;
+            span.style.opacity = opacity;
+        });
+    }
+
+    // Method to add new container dynamically
+    addContainer(containerId) {
+        const container = document.getElementById(containerId);
+        if (container && !this.containers.has(containerId)) {
+            this.containers.set(containerId, {
+                element: container,
+                spans: container.querySelectorAll('span'),
+                x: 0
+            });
+
+            container.addEventListener("click", (e) => {
+                this.handleContainerClick(e, containerId);
+            });
+
+            this.rotate(containerId);
+        }
+    }
 }
 
-// Initial call
-rotate();
+// Initialize the image rotation manager
+let imageRotationManager;
+document.addEventListener('DOMContentLoaded', () => {
+    // Small delay to ensure all elements are loaded
+    setTimeout(() => {
+        imageRotationManager = new ImageRotationManager();
+    }, 100);
+});
 
