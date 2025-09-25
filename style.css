@@ -388,6 +388,35 @@ button:hover {
 }
 
 /* ==============================
+   Popup Window Scrollbar Styling
+============================== */
+.popup-window::-webkit-scrollbar {
+    width: 8px;
+}
+
+.popup-window::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+.popup-window::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #ff00ff, #ff0080);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.popup-window::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #ff40ff, #ff40a0);
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+}
+
+/* Firefox scrollbar styling */
+.popup-window {
+    scrollbar-width: thin;
+    scrollbar-color: #ff00ff rgba(0, 0, 0, 0.3);
+}
+
+/* ==============================
    Skill Tags
 ============================== */
 .skill-tags {
