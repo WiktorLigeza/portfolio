@@ -546,7 +546,7 @@ document.addEventListener('keydown', (event) => {
 class WindowManager {
     constructor() {
         this.currentWindow = -1; // Start with no window visible
-        this.totalWindows = 4;
+        this.totalWindows = 5;
         this.isTransitioning = false;
         this.isWindowsVisible = false; // Start hidden
         this.lastDirection = 'right'; // Track animation direction
@@ -746,7 +746,8 @@ document.addEventListener('DOMContentLoaded', () => {
         window0: !!document.getElementById('window-0'),
         window1: !!document.getElementById('window-1'),
         window2: !!document.getElementById('window-2'),
-        window3: !!document.getElementById('window-3')
+        window3: !!document.getElementById('window-3'),
+        window4: !!document.getElementById('window-4')
     });
 });
 
