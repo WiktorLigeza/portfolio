@@ -10,6 +10,7 @@ class ThreeJSViewer {
         this.modelLoader = new ModelLoader();
         this.config = null;
         this.animationId = null;
+        this.isRotating = false;
     }
 
     async init(config) {
@@ -199,6 +200,61 @@ class ThreeJSViewer {
         }
     }
 
+    rotateViewLeft() {
+        if (this.controls && !this.isRotating) {
+            this.animateRotation(Math.PI / 2); // 45 degrees to the left
+        }
+    }
+
+    rotateViewRight() {
+        if (this.controls && !this.isRotating) {
+            this.animateRotation(-Math.PI / 2); // 45 degrees to the right
+        }
+    }
+
+    animateRotation(angle) {
+        if (this.isRotating) return; // Prevent multiple simultaneous rotations
+        
+        this.isRotating = true;
+        
+        // Get current camera position relative to target
+        const targetPosition = this.controls.target.clone();
+        const startPosition = this.camera.position.clone().sub(targetPosition);
+        
+        // Calculate end position
+        const rotationMatrix = new THREE.Matrix4().makeRotationY(angle);
+        const endPosition = startPosition.clone().applyMatrix4(rotationMatrix);
+        
+        // Animation parameters
+        const duration = 800; // milliseconds
+        const startTime = performance.now();
+        
+        const animate = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing function (ease-out-cubic)
+            const eased = 1 - Math.pow(1 - progress, 3);
+            
+            // Interpolate position
+            const currentPosition = startPosition.clone().lerp(endPosition, eased);
+            
+            // Set camera position
+            this.camera.position.copy(targetPosition.clone().add(currentPosition));
+            this.camera.lookAt(this.controls.target);
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                this.isRotating = false;
+                // Update controls after animation completes
+                this.controls.update();
+            }
+        };
+        
+        requestAnimationFrame(animate);
+    }
+
     // Method to toggle auto-rotation
     toggleAutoRotate() {
         if (this.controls) {
@@ -304,6 +360,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Export viewer for global access
         window.viewer = viewer;
+        
+        // Add event listeners for navigation buttons
+        document.getElementById('rotateLeft').addEventListener('click', () => {
+            viewer.rotateViewLeft();
+        });
+        
+        document.getElementById('rotateRight').addEventListener('click', () => {
+            viewer.rotateViewRight();
+        });
     } else {
         console.error('Three.js not loaded');
     }

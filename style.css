@@ -430,3 +430,52 @@ button:hover {
     color: #00ffc1;
     font-style: italic;
 }
+
+/* Navigation Arrow Buttons */
+.nav-buttons {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 150;
+    pointer-events: none; /* Allow container to be transparent */
+}
+
+.nav-arrow-btn {
+    position: fixed;
+    background: rgba(0, 255, 191, 0.2);
+    border: 2px solid #00ffbf;
+    color: #00ffc1;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+    pointer-events: all; /* Make buttons clickable */
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.nav-arrow-btn:hover {
+    background: rgba(0, 255, 191, 0.4);
+    box-shadow: 0 0 20px rgba(0, 255, 191, 0.6);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.nav-arrow-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+#rotateLeft {
+    left: 20px;
+}
+
+#rotateRight {
+    right: 20px;
+}
