@@ -479,3 +479,225 @@ button:hover {
 #rotateRight {
     right: 20px;
 }
+
+/* Floating Windows System */
+.floating-windows-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60vw;
+    height: 90vh;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.floating-window {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 20, 40, 0.95);
+    border: 2px solid #00ffbf;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 30px rgba(0, 255, 191, 0.3);
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    pointer-events: all;
+    overflow: hidden;
+}
+
+.floating-window.active {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.floating-window.exiting-left {
+    opacity: 0;
+    transform: translateX(-100%);
+}
+
+.floating-window.entering-right {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+.floating-window.entering-left {
+    opacity: 0;
+    transform: translateX(-100%);
+}
+
+.floating-window.exiting-right {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+.window-header {
+    background: rgba(0, 255, 191, 0.1);
+    border-bottom: 1px solid #00ffbf;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.window-header h3 {
+    color: #00ffc1;
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #00ffc1;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 0, 100, 0.2);
+    color: #ff0064;
+}
+
+.window-content {
+    padding: 30px;
+    height: calc(100% - 80px);
+    overflow-y: auto;
+    color: #e0f7fa;
+    line-height: 1.6;
+}
+
+/* Custom scrollbar */
+.window-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.window-content::-webkit-scrollbar-track {
+    background: rgba(0, 255, 191, 0.1);
+    border-radius: 4px;
+}
+
+.window-content::-webkit-scrollbar-thumb {
+    background: #00ffbf;
+    border-radius: 4px;
+}
+
+.window-content::-webkit-scrollbar-thumb:hover {
+    background: #00d4a3;
+}
+
+/* Content Styles */
+.skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.skill-tag {
+    background: rgba(0, 255, 191, 0.2);
+    color: #00ffc1;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid #00ffbf;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.project-item, .experience-item {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(0, 255, 191, 0.2);
+}
+
+.project-item:last-child, .experience-item:last-child {
+    border-bottom: none;
+}
+
+.project-item h4, .experience-item h4 {
+    color: #00ffc1;
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.date {
+    color: #00d4a3;
+    font-size: 14px;
+    font-style: italic;
+    margin-bottom: 10px;
+}
+
+.contact-info {
+    margin-bottom: 30px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    color: #e0f7fa;
+}
+
+.contact-item i {
+    color: #00ffc1;
+    width: 20px;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-input, .form-textarea {
+    background: rgba(0, 255, 191, 0.1);
+    border: 1px solid #00ffbf;
+    border-radius: 6px;
+    padding: 12px 15px;
+    color: #e0f7fa;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus, .form-textarea:focus {
+    outline: none;
+    border-color: #00ffc1;
+    box-shadow: 0 0 10px rgba(0, 255, 191, 0.3);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.send-btn {
+    background: linear-gradient(45deg, #00ffbf, #00d4a3);
+    color: #000;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.send-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 191, 0.4);
+}
+
+

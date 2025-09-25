@@ -361,13 +361,25 @@ document.addEventListener('DOMContentLoaded', () => {
         // Export viewer for global access
         window.viewer = viewer;
         
-        // Add event listeners for navigation buttons
+        // Add event listeners for navigation buttons - rotate camera AND control windows
         document.getElementById('rotateLeft').addEventListener('click', () => {
+            // Rotate camera
             viewer.rotateViewLeft();
+            
+            // Control windows with synchronized animation
+            if (window.windowManager) {
+                window.windowManager.previousWindow();
+            }
         });
         
         document.getElementById('rotateRight').addEventListener('click', () => {
+            // Rotate camera  
             viewer.rotateViewRight();
+            
+            // Control windows with synchronized animation
+            if (window.windowManager) {
+                window.windowManager.nextWindow();
+            }
         });
     } else {
         console.error('Three.js not loaded');
@@ -389,6 +401,143 @@ document.addEventListener('keydown', (event) => {
             viewer.toggleAutoRotate();
             break;
     }
+});
+
+// Window Manager Class
+class WindowManager {
+    constructor() {
+        this.currentWindow = -1; // Start with no window visible
+        this.totalWindows = 4;
+        this.isTransitioning = false;
+        this.isWindowsVisible = false; // Start hidden
+        this.lastDirection = 'right'; // Track animation direction
+        
+        this.init();
+    }
+    
+    init() {
+        // Add close button handlers
+        document.querySelectorAll('.close-btn').forEach((btn, index) => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.hideAllWindows();
+            });
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (this.currentWindow >= 0 && !this.isTransitioning) {
+                if (e.key === 'ArrowLeft') {
+                    this.previousWindow();
+                } else if (e.key === 'ArrowRight') {
+                    this.nextWindow();
+                } else if (e.key === 'Escape') {
+                    this.hideAllWindows();
+                }
+            }
+        });
+    }
+    
+    hideAllWindows() {
+        this.isWindowsVisible = false;
+        
+        // Hide current window
+        if (this.currentWindow >= 0) {
+            const currentWindowEl = document.getElementById(`window-${this.currentWindow}`);
+            currentWindowEl.classList.remove('active');
+            currentWindowEl.classList.add('exiting-right'); // Exit to right
+            
+            // Reset after animation
+            setTimeout(() => {
+                currentWindowEl.classList.remove('exiting-right', 'exiting-left', 'entering-right', 'entering-left');
+            }, 800);
+        }
+        
+        this.currentWindow = -1;
+    }
+    
+    showWindow(index, animate = true) {
+        if (this.isTransitioning || index === this.currentWindow) return;
+        
+        if (animate) {
+            this.isTransitioning = true;
+        }
+        
+        // Hide current window with exit animation based on direction
+        if (this.currentWindow >= 0 && this.currentWindow !== index) {
+            const currentWindowEl = document.getElementById(`window-${this.currentWindow}`);
+            // Use lastDirection to determine exit direction
+            const exitDirection = this.lastDirection === 'right' ? 'exiting-left' : 'exiting-right';
+            
+            if (animate) {
+                currentWindowEl.classList.add(exitDirection);
+            }
+            currentWindowEl.classList.remove('active');
+        }
+        
+        // Show new window with enter animation
+        setTimeout(() => {
+            const newWindowEl = document.getElementById(`window-${index}`);
+            
+            if (animate && this.currentWindow >= 0) {
+                // Use lastDirection to determine enter direction  
+                const enterDirection = this.lastDirection === 'right' ? 'entering-right' : 'entering-left';
+                
+                // Reset position for animation
+                newWindowEl.classList.remove('exiting-left', 'exiting-right', 'entering-left', 'entering-right');
+                newWindowEl.classList.add(enterDirection);
+                
+                // Trigger reflow
+                newWindowEl.offsetHeight;
+                
+                // Start enter animation
+                newWindowEl.classList.remove(enterDirection);
+            }
+            
+            newWindowEl.classList.add('active');
+            this.currentWindow = index;
+            this.isWindowsVisible = true;
+            
+            // Clear transition flag
+            if (animate) {
+                setTimeout(() => {
+                    this.isTransitioning = false;
+                }, 800);
+            } else {
+                this.isTransitioning = false;
+            }
+            
+        }, (animate && this.currentWindow >= 0) ? 200 : 0);
+    }
+    
+    nextWindow() {
+        this.lastDirection = 'right';
+        if (this.currentWindow === -1) {
+            // First time showing a window
+            this.showWindow(0);
+        } else {
+            const nextIndex = (this.currentWindow + 1) % this.totalWindows;
+            this.showWindow(nextIndex);
+        }
+    }
+    
+    previousWindow() {
+        this.lastDirection = 'left';
+        if (this.currentWindow === -1) {
+            // First time showing a window, start from last
+            this.showWindow(this.totalWindows - 1);
+        } else {
+            const prevIndex = this.currentWindow === 0 ? this.totalWindows - 1 : this.currentWindow - 1;
+            this.showWindow(prevIndex);
+        }
+    }
+    
+
+}
+
+// Initialize Window Manager
+document.addEventListener('DOMContentLoaded', () => {
+    window.windowManager = new WindowManager();
 });
 
 
