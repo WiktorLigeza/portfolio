@@ -12,6 +12,15 @@ body {
     height: 100vh;
 }
 
+/* Three.js Canvas Styles */
+#container canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: block;
+}
+
 /* Header Styles */
 #mainHeader {
     position: fixed;

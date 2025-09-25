@@ -1,361 +1,337 @@
-import { ThreeJSManager } from './ThreeJSManager.js';
+// Using global THREE from CDN
 
-// Global variables
-let socket;
-let config = null;
-let threeJSManager = null;
-
-// Stream window variables
-let streamWindow = null;
-let streamVideo = null;
-let streamStatus = null;
-let streamConnected = false;
-
-// FPS tracking variables
-let dataFps = 0;
-let dataFrameCount = 0;
-let dataLastTime = performance.now();
-
-// List window variables
-let listWindow = null;
-let measurementsList = [];
-let measurementsTracker = new Map(); // Track frame activity for each measurement
-
-// Load configuration
-async function loadConfig() {
-    try {
-        const response = await fetch('/static/js/config.json');
-        config = await response.json();
-    } catch (error) {
-        console.error('Failed to load config:', error);
-        // Fallback config
-        config = {
-            camera: { fov: 75, near: 0.1, far: 1000, position: { x: 10, y: 10, z: 10 }, lookAt: { x: 0, y: 0, z: 0 } },
-            colorMap: { red: "0xff0000", green: "0x00ff00", blue: "0x0000ff", white: "0xffffff", apenum: "0x00ffc1" }
-        };
+class ThreeJSViewer {
+    constructor() {
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        this.controls = null;
+        this.geometryHelpers = new GeometryHelpers();
+        this.modelLoader = new ModelLoader();
+        this.config = null;
+        this.animationId = null;
     }
-}
 
-// Initialize Three.js scene
-async function initThreeJS() {
-    await loadConfig();
-    
-    threeJSManager = new ThreeJSManager();
-    await threeJSManager.init(config);
-        // 🎬 Usage in your main scene setup:
-    // Handle window resize
-    window.addEventListener('resize', () => threeJSManager.onWindowResize());
-}
-
-function updateVisualization(data) {
-    if (!threeJSManager) return;
-    
-    const { boxCount, pointCount } = threeJSManager.updateVisualization(data);
-    
-    // Update measurements list if available
-    if (data.measurements) {
-        updateMeasurementsList(data.measurements);
+    async init(config) {
+        this.config = config;
+        this.geometryHelpers.setConfig(config);
+        
+        await this.initScene();
+        await this.initCamera();
+        await this.initRenderer();
+        await this.initLighting();
+        await this.initHelpers();
+        await this.setupControls();
+        
+        // Start render loop
+        this.animate();
+        
+        // Load forklift model
+        await this.modelLoader.loadForkliftModel(this.scene, 0);
     }
-    
-    // Use FPS from server/MQTT if provided; fallback to local estimate
-    if (typeof data.fps === 'number' && isFinite(data.fps)) {
-        dataFps = data.fps;
-        const fpsEl = document.getElementById('fpsCounter');
-        if (fpsEl) fpsEl.textContent = Math.round(dataFps);
-        // Reset local counters to avoid stale accumulation
-        dataFrameCount = 0;
-        dataLastTime = performance.now();
-    } else {
-        // Calculate data FPS
-        dataFrameCount++;
+
+    async initScene() {
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(parseInt(this.config.scene.background.replace('0x', ''), 16));
+        
+        var skyDomeRadius = 500.01;
+        var sphereMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                skyRadius: { value: skyDomeRadius },
+                env_c1: { value: new THREE.Color("#0d1a2f") },
+                env_c2: { value: new THREE.Color("#0f8682") },
+                noiseOffset: { value: new THREE.Vector3(100.01, 100.01, 100.01) },
+                starSize: { value: 0.01 },
+                starDensity: { value: 0.09 },
+                clusterStrength: { value: 0.2 },
+                clusterSize: { value: 0.2 },
+                time: { value: 0 },
+            },
+            vertexShader: StarrySkyShader.vertexShader,
+            fragmentShader: StarrySkyShader.fragmentShader,
+            side: THREE.DoubleSide,
+        });
+        
+        var sphereGeometry = new THREE.SphereGeometry(skyDomeRadius, 20, 20);
+        var skyDome = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        this.scene.add(skyDome);
+    }
+
+    async initCamera() {
+        this.camera = new THREE.PerspectiveCamera(
+            this.config.camera.fov,
+            window.innerWidth / window.innerHeight,
+            this.config.camera.near,
+            this.config.camera.far
+        );
+        
+        const initialPosition = {x: 2.8655646377178905, y: 1.861485476788222, z: 4.617727918226375};
+        this.camera.position.set(initialPosition.x, initialPosition.y, initialPosition.z);
+    }
+
+    async initRenderer() {
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.renderer.setClearColor(0x263238, 1);
+        document.getElementById('container').appendChild(this.renderer.domElement);
+    }
+
+    async initLighting() {
+        const ambientLight = new THREE.AmbientLight(
+            parseInt(this.config.lighting.ambient.color.replace('0x', ''), 16),
+            this.config.lighting.ambient.intensity
+        );
+        this.scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(
+            parseInt(this.config.lighting.directional.color.replace('0x', ''), 16),
+            this.config.lighting.directional.intensity
+        );
+        directionalLight.position.set(
+            this.config.lighting.directional.position.x,
+            this.config.lighting.directional.position.y,
+            this.config.lighting.directional.position.z
+        );
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        directionalLight.shadow.camera.near = 0.5;
+        directionalLight.shadow.camera.far = 500;
+        this.scene.add(directionalLight);
+    }
+
+    async initHelpers() {
+        this.createGridAndAxes(0);
+        this.createCameraFOV(0);
+    }
+
+    async setupControls() {
+        this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+        
+        // Configure orbital movement
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.05;
+        this.controls.screenSpacePanning = false;
+        
+        // Set limits for orbital movement
+        this.controls.minDistance = 1;
+        this.controls.maxDistance = 100;
+        this.controls.maxPolarAngle = Math.PI;
+        
+        // Set rotation speed
+        this.controls.rotateSpeed = 0.5;
+        this.controls.zoomSpeed = 1.2;
+        this.controls.panSpeed = 0.8;
+        
+        // Set target (what the camera orbits around)
+        this.controls.target.set(0, 0, 0);
+        
+        // Enable auto-rotate for continuous orbital movement
+        this.controls.autoRotate = false; // Set to true for automatic rotation
+        this.controls.autoRotateSpeed = 2.0;
+        
+        this.controls.update();
+    }
+
+    createGridAndAxes(warehouseId) {
+        // Create grid helper
+        const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x444444);
+        gridHelper.name = `grid_${warehouseId}`;
+        this.scene.add(gridHelper);
+        
+        // Create axes helper
+        const axesHelper = new THREE.AxesHelper(5);
+        axesHelper.name = `axes_${warehouseId}`;
+        this.scene.add(axesHelper);
+    }
+
+    createCameraFOV(warehouseId) {
+        // Create camera frustum helper
+        const cameraHelper = new THREE.CameraHelper(this.camera);
+        cameraHelper.name = `cameraFOV_${warehouseId}`;
+        cameraHelper.visible = false; // Initially hidden
+        this.scene.add(cameraHelper);
+    }
+
+    animate() {
+        this.animationId = requestAnimationFrame(() => this.animate());
+        
+        // Update controls for smooth orbital movement
+        if (this.controls) {
+            this.controls.update();
+        }
+        
+        // Update sky dome shader time for animated stars
+        const skyDome = this.scene.getObjectByName('skyDome');
+        if (skyDome && skyDome.material.uniforms.time) {
+            skyDome.material.uniforms.time.value += 0.01;
+        }
+        
+        this.render();
+        this.updateFPS();
+    }
+
+    render() {
+        if (this.renderer && this.scene && this.camera) {
+            this.renderer.render(this.scene, this.camera);
+        }
+    }
+
+    updateFPS() {
+        // Simple FPS counter
+        if (!this.lastTime) this.lastTime = performance.now();
+        if (!this.frameCount) this.frameCount = 0;
+        
+        this.frameCount++;
         const currentTime = performance.now();
-        if (currentTime - dataLastTime >= 1000) {
-            dataFps = Math.round((dataFrameCount * 1000) / (currentTime - dataLastTime));
-            const fpsEl = document.getElementById('fpsCounter');
-            if (fpsEl) fpsEl.textContent = dataFps;
-            dataFrameCount = 0;
-            dataLastTime = currentTime;
+        
+        if (currentTime >= this.lastTime + 1000) {
+            const fps = Math.round((this.frameCount * 1000) / (currentTime - this.lastTime));
+            const fpsElement = document.getElementById('fpsCounter');
+            if (fpsElement) {
+                fpsElement.textContent = fps;
+            }
+            this.frameCount = 0;
+            this.lastTime = currentTime;
+        }
+    }
+
+    // Method to toggle auto-rotation
+    toggleAutoRotate() {
+        if (this.controls) {
+            this.controls.autoRotate = !this.controls.autoRotate;
+        }
+    }
+
+    // Method to reset camera position
+    resetCameraPosition() {
+        if (this.camera && this.controls) {
+            const initialPosition = {x: 2.8655646377178905, y: 1.861485476788222, z: 4.617727918226375};
+            this.camera.position.set(initialPosition.x, initialPosition.y, initialPosition.z);
+            this.controls.target.set(0, 0, 0);
+            this.controls.update();
+        }
+    }
+
+    // Handle window resize
+    onWindowResize() {
+        if (this.camera && this.renderer) {
+            this.camera.aspect = window.innerWidth / window.innerHeight;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+    }
+
+    // Clean up
+    dispose() {
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+        }
+        if (this.renderer) {
+            this.renderer.dispose();
+        }
+        if (this.controls) {
+            this.controls.dispose();
         }
     }
 }
 
-// Measurements list functions
-function initListWindow() {
-    listWindow = document.getElementById('listWindow');
+// Helper classes
+class GeometryHelpers {
+    constructor() {
+        this.config = null;
+    }
+    
+    setConfig(config) {
+        this.config = config;
+    }
 }
 
-function updateMeasurementsList(measurements) {
-    // Update tracker with current measurements
-    const currentIds = new Set();
-
-    measurements.forEach(measurement => {
-        currentIds.add(measurement.id);
-        if (measurementsTracker.has(measurement.id)) {
-            // Reset frame counter for active measurement
-            measurementsTracker.get(measurement.id).inactiveFrames = 0;
-            measurementsTracker.get(measurement.id).data = measurement;
-        } else {
-            // Add new measurement
-            measurementsTracker.set(measurement.id, {
-                data: measurement,
-                inactiveFrames: 0
-            });
+class ModelLoader {
+    constructor() {
+        this.loader = new THREE.GLTFLoader();
+    }
+    
+    async loadForkliftModel(scene, warehouseId) {
+        try {
+            // Placeholder for forklift model loading
+            // Replace with actual model path when available
+            console.log(`Loading forklift model for warehouse ${warehouseId}`);
+            
+            // Create a placeholder box for now
+            const geometry = new THREE.BoxGeometry(1, 1, 2);
+            const material = new THREE.MeshPhongMaterial({ color: 0xffaa00 });
+            const forklift = new THREE.Mesh(geometry, material);
+            forklift.position.set(0, 0.5, 0);
+            forklift.name = `forklift_${warehouseId}`;
+            forklift.castShadow = true;
+            forklift.receiveShadow = true;
+            scene.add(forklift);
+            
+        } catch (error) {
+            console.error('Error loading forklift model:', error);
         }
-    });
+    }
+}
 
-    // Increment inactive frame counter for measurements not in current update
-    for (let [id, tracker] of measurementsTracker.entries()) {
-        if (!currentIds.has(id)) {
-            tracker.inactiveFrames++;
-            // Remove if inactive for 50 frames
-            if (tracker.inactiveFrames >= 50) {
-                measurementsTracker.delete(id);
+// Default configuration
+const defaultConfig = {
+    scene: {
+        background: '0x263238'
+    },
+    camera: {
+        fov: 75,
+        near: 0.1,
+        far: 1000
+    },
+    lighting: {
+        ambient: {
+            color: '0x404040',
+            intensity: 0.4
+        },
+        directional: {
+            color: '0xffffff',
+            intensity: 0.8,
+            position: {
+                x: 10,
+                y: 10,
+                z: 5
             }
         }
     }
-
-    // Find max width/height for scaling
-    let maxWidth = 0, maxHeight = 0;
-    for (let tracker of measurementsTracker.values()) {
-        maxWidth = Math.max(maxWidth, tracker.data.width);
-        maxHeight = Math.max(maxHeight, tracker.data.height);
-    }
-    // Store for use in rendering
-    updateMeasurementsList.maxWidth = maxWidth;
-    updateMeasurementsList.maxHeight = maxHeight;
-
-    // Update measurements list with active measurements
-    measurementsList = Array.from(measurementsTracker.values()).map(tracker => tracker.data);
-    renderMeasurements();
-}
-
-// Patch createPalletElement to use scaling and even slot spacing
-const origCreatePalletElement = createPalletElement;
-createPalletElement = function(measurement) {
-    const container = document.createElement('div');
-    container.className = 'pallet-container';
-
-    // Use max width/height for scaling
-    const maxSize = 150;
-    const maxWidth = updateMeasurementsList.maxWidth || measurement.width;
-    const maxHeight = updateMeasurementsList.maxHeight || measurement.height;
-    const scale = Math.min(maxSize / maxWidth, maxSize / maxHeight);
-
-    const palletWidth = measurement.width * scale;
-    const palletHeight = measurement.height * scale;
-    const slotWidth = measurement.slot_width * scale;
-    const slotHeight = measurement.slot_height * scale;
-
-    // Evenly spaced slots (2 slots, 3 gaps: left, between, right)
-    const slotCount = 2;
-    const gapCount = slotCount + 1;
-    const totalSlotWidth = slotCount * slotWidth;
-    const gap = (palletWidth - totalSlotWidth) / gapCount;
-
-    const slotY = (palletHeight - slotHeight) / 2;
-
-    let slotsHtml = '';
-    for (let i = 0; i < slotCount; i++) {
-        const left = gap + i * (slotWidth + gap);
-        slotsHtml += `<div class="pallet-slot" style="
-            width: ${slotWidth}px; 
-            height: ${slotHeight}px;
-            left: ${left}px;
-            top: ${slotY}px;
-        "></div>`;
-    }
-
-    container.innerHTML = `
-        <div class="pallet-info">
-            <h4>Pallet ID: ${measurement.id}</h4>
-            <div class="measurements">
-                <span>Side: ${measurement.width.toFixed(2)}m × ${measurement.height.toFixed(2)}m</span>
-                <span>Slot: ${measurement.slot_width.toFixed(2)}m × ${measurement.slot_height.toFixed(2)}m</span>
-                <span>due ${measurement.due.toFixed(3)*1000}mm | dc: ${measurement.dc.toFixed(3)*1000}mm </span>
-                <span>Level: ${-1*measurement.origin[1].toFixed(3)}m, Distance ${-1*measurement.origin[2].toFixed(3)}m  </span>
-            </div>
-        </div>
-        <div class="pallet-visual" style="width: ${palletWidth}px; height: ${palletHeight}px; position: relative;">
-            <div class="pallet-face"></div>
-            ${slotsHtml}
-        </div>
-    `;
-
-    return container;
 };
 
-function renderMeasurements() {
-    if (!listWindow) return;
-    
-    listWindow.innerHTML = '';
-    
-    if (measurementsList.length === 0) {
-        listWindow.innerHTML += '<p>No measurements available</p>';
-        return;
+// Initialize the viewer when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait for Three.js to load
+    if (typeof THREE !== 'undefined') {
+        const viewer = new ThreeJSViewer();
+        viewer.init(defaultConfig);
+        
+        // Export viewer for global access
+        window.viewer = viewer;
+    } else {
+        console.error('Three.js not loaded');
     }
-    
-    measurementsList.forEach(measurement => {
-        const palletElement = createPalletElement(measurement);
-        listWindow.appendChild(palletElement);
-    });
-}
-
-function createPalletElement(measurement) {
-    const container = document.createElement('div');
-    container.className = 'pallet-container';
-    
-    // Scale factor: Limit max size to fit in window
-    const maxSize = 150; // Maximum dimension in pixels
-    const scale = Math.min(maxSize / Math.max(measurement.width, measurement.height));
-    
-    const palletWidth = measurement.width * scale;
-    const palletHeight = measurement.height * scale;
-    const slotWidth = measurement.slot_width * scale;
-    const slotHeight = measurement.slot_height * scale;
-    
-    // Calculate positions for two evenly separated slots
-    const slotSpacing = palletWidth / 3; // Divide width into 3 parts
-    const slot1X = slotSpacing - (slotWidth / 2); // Center first slot in first third
-    const slot2X = (2 * slotSpacing) - (slotWidth / 2); // Center second slot in second third
-    const slotY = (palletHeight - slotHeight) / 2; // Center vertically
-    
-    container.innerHTML = `
-        <div class="pallet-info">
-            <h4>Pallet ID: ${measurement.id}</h4>
-            <div class="measurements">
-                <span>Width: ${measurement.width.toFixed(2)}m</span>
-                <span>Height: ${measurement.height.toFixed(2)}m</span>
-                <span>Slot: ${measurement.slot_width.toFixed(2)}m × ${measurement.slot_height.toFixed(2)}m</span>
-            </div>
-        </div>
-        <div class="pallet-visual" style="width: ${palletWidth}px; height: ${palletHeight}px;">
-            <div class="pallet-face"></div>
-            <div class="pallet-slot" style="
-                width: ${slotWidth}px; 
-                height: ${slotHeight}px;
-                left: ${slot1X}px;
-                top: ${slotY}px;
-            "></div>
-            <div class="pallet-slot" style="
-                width: ${slotWidth}px; 
-                height: ${slotHeight}px;
-                left: ${slot2X}px;
-                top: ${slotY}px;
-            "></div>
-        </div>
-    `;
-    
-    return container;
-}
-
-// Socket.IO and control functions
-function initSocket() {
-    socket = io();
-    
-    socket.on('connect', () => {
-        console.log('Connected to server');
-        document.getElementById('connectionStatus').textContent = 'Connected';
-        document.getElementById('connectionStatus').className = 'connected';
-        requestData();
-    });
-    
-    socket.on('disconnect', () => {
-        console.log('Disconnected from server');
-        document.getElementById('connectionStatus').textContent = 'Disconnected';
-        document.getElementById('connectionStatus').className = 'disconnected';
-    });
-    
-    socket.on('visualization_update', (data) => {
-        // console.log('Received visualization update:', data);
-        updateVisualization(data);
-    });
-}
-
-function requestData() {
-    if (socket) {
-        socket.emit('request_data');
-    }
-}
-
-function sendSampleData() {
-    fetch('/api/sample', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Sample data sent:', data);
-    })
-    .catch(error => {
-        console.error('Error sending sample data:', error);
-    });
-}
-
-function resetCamera() {
-    if (threeJSManager) {
-        threeJSManager.resetCamera();
-    }
-}
-
-function toggleWireframe() {
-    if (threeJSManager) {
-        threeJSManager.toggleWireframe();
-    }
-}
-
-// Stream window functions
-function initStreamWindow() {
-    streamWindow = document.getElementById('streamWindow');
-    streamVideo = document.getElementById('streamVideo');
-    streamStatus = document.getElementById('streamStatus');
-    
-    // Connect to streams on initialization
-    connectToStreams();
-    
-    // Prevent context menu on stream images
-    streamVideo.addEventListener('contextmenu', (e) => e.preventDefault());
-}
-
-function connectToStreams() {
-    const host = window.location.hostname;
-    const streamUrl = `http://${host}:8080/stream`;
-    
-    streamStatus.textContent = 'Connecting...';
-    streamStatus.className = 'stream-status';
-    
-    streamVideo.src = streamUrl;
-    streamVideo.style.display = 'block';
-    
-    streamVideo.onload = () => {
-        streamConnected = true;
-        streamStatus.style.display = 'none';
-        console.log('Combined RGB+Depth stream connected successfully');
-    };
-    
-    streamVideo.onerror = () => {
-        streamConnected = false;
-        streamStatus.style.display = 'block';
-        streamStatus.textContent = 'Connection Failed';
-        streamStatus.className = 'stream-status error';
-        console.error('Failed to connect to combined stream at', streamUrl);
-    };
-}
-
-function disconnectFromStreams() {
-    streamVideo.src = '';
-    streamVideo.style.display = 'none';
-    streamStatus.style.display = 'block';
-    streamStatus.textContent = 'Disconnected';
-    streamStatus.className = 'stream-status';
-    streamConnected = false;
-}
-
-// Initialize everything
-window.addEventListener('load', () => {
-    initThreeJS();
-    initSocket();
-    initStreamWindow();
-    initListWindow();
 });
+
+// Handle window resize
+window.addEventListener('resize', () => {
+    viewer.onWindowResize();
+});
+
+// Keyboard controls for orbital movement
+document.addEventListener('keydown', (event) => {
+    switch(event.code) {
+        case 'KeyR':
+            viewer.resetCameraPosition();
+            break;
+        case 'KeyA':
+            viewer.toggleAutoRotate();
+            break;
+    }
+});
+
+
