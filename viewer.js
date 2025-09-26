@@ -65,6 +65,67 @@ class ThreeJSViewer {
         var sphereGeometry = new THREE.SphereGeometry(skyDomeRadius, 20, 20);
         var skyDome = new THREE.Mesh(sphereGeometry, sphereMaterial);
         this.scene.add(skyDome);
+        
+        // Add Earth and Moon
+        await this.initEarthMoon();
+    }
+
+    async initEarthMoon() {
+        const loader = new THREE.TextureLoader();
+        const detail = 12;
+        
+        // Create Earth group with rotation
+        this.earthGroup = new THREE.Group();
+        this.earthGroup.rotation.z = -23.4 * Math.PI / 180;
+        this.scene.add(this.earthGroup);
+        
+        // Earth geometry
+        const earthGeometry = new THREE.IcosahedronGeometry(1, detail);
+        
+        // Earth material with textures
+        const earthMaterial = new THREE.MeshPhongMaterial({
+            map: loader.load("./textures/00_earthmap1k.jpg"),
+            specularMap: loader.load("./textures/02_earthspec1k.jpg"),
+            bumpMap: loader.load("./textures/01_earthbump1k.jpg"),
+            bumpScale: 0.04,
+        });
+        this.earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+        this.earthGroup.add(this.earthMesh);
+        
+        // Earth lights (city lights on dark side)
+        const lightsMaterial = new THREE.MeshBasicMaterial({
+            map: loader.load("./textures/03_earthlights1k.jpg"),
+            blending: THREE.AdditiveBlending,
+        });
+        this.lightsMesh = new THREE.Mesh(earthGeometry, lightsMaterial);
+        this.earthGroup.add(this.lightsMesh);
+        
+        // Earth clouds
+        const cloudsMaterial = new THREE.MeshStandardMaterial({
+            map: loader.load("./textures/04_earthcloudmap.jpg"),
+            transparent: true,
+            opacity: 0.5,
+            blending: THREE.AdditiveBlending,
+            alphaMap: loader.load('./textures/05_earthcloudmaptrans.jpg'),
+        });
+        this.cloudsMesh = new THREE.Mesh(earthGeometry, cloudsMaterial);
+        this.cloudsMesh.scale.setScalar(1.003);
+        this.earthGroup.add(this.cloudsMesh);
+        
+        // Moon group for orbital movement
+        this.moonGroup = new THREE.Group();
+        this.scene.add(this.moonGroup);
+        
+        // Moon material and mesh
+        const moonMaterial = new THREE.MeshStandardMaterial({
+            map: loader.load("./textures/06_moonmap4k.jpg"),
+            bumpMap: loader.load("./textures/07_moonbump4k.jpg"),
+            bumpScale: 2,
+        });
+        this.moonMesh = new THREE.Mesh(earthGeometry, moonMaterial);
+        this.moonMesh.position.set(2, 0, 0);
+        this.moonMesh.scale.setScalar(0.27);
+        this.moonGroup.add(this.moonMesh);
     }
 
     async initCamera() {
@@ -273,6 +334,20 @@ class ThreeJSViewer {
         const skyDome = this.scene.getObjectByName('skyDome');
         if (skyDome && skyDome.material.uniforms.time) {
             skyDome.material.uniforms.time.value += 0.01;
+        }
+        
+        // Animate Earth and Moon
+        if (this.earthMesh) {
+            this.earthMesh.rotation.y += 0.002;
+        }
+        if (this.lightsMesh) {
+            this.lightsMesh.rotation.y += 0.002;
+        }
+        if (this.cloudsMesh) {
+            this.cloudsMesh.rotation.y += 0.0023;
+        }
+        if (this.moonGroup) {
+            this.moonGroup.rotation.y += 0.01;
         }
         
         this.render();
