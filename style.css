@@ -293,10 +293,18 @@ button:hover {
     display: none;
 }
 
+
 .logo_container {
+  display: none; /* hide by default */
+}
+
+@media (min-width: 1250px) { /* show only when viewport is >= 1024px */
+  .logo_container {
+    display: block;
     position: absolute;
     top: 20%;
     right: 20%;
+  }
 }
 
 .stream-window.collapsed {
