@@ -87,7 +87,7 @@ class ThreeJSViewer {
             map: loader.load("./textures/00_earthmap1k.jpg"),
             specularMap: loader.load("./textures/02_earthspec1k.jpg"),
             bumpMap: loader.load("./textures/01_earthbump1k.jpg"),
-            bumpScale: 0.01,
+            bumpScale: 0.0001,
         });
         this.earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
         this.earthGroup.add(this.earthMesh);
@@ -126,11 +126,11 @@ class ThreeJSViewer {
         const moonMaterial = new THREE.MeshStandardMaterial({
             map: loader.load("./textures/06_moonmap4k.jpg"),
             bumpMap: loader.load("./textures/07_moonbump4k.jpg"),
-            bumpScale: 2,
+            bumpScale: 0.04,
         });
         this.moonMesh = new THREE.Mesh(earthGeometry, moonMaterial);
-        this.moonMesh.position.set(2, 0, 0);
-        this.moonMesh.scale.setScalar(0.27);
+        this.moonMesh.position.set(100, 0, 0); // 50x bigger radius (2 * 50 = 100)
+        this.moonMesh.scale.setScalar(5); // 10x bigger (0.27 * 10 = 2.7)
         this.moonGroup.add(this.moonMesh);
     }
 
