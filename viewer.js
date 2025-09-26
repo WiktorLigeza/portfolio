@@ -87,7 +87,7 @@ class ThreeJSViewer {
             map: loader.load("./textures/00_earthmap1k.jpg"),
             specularMap: loader.load("./textures/02_earthspec1k.jpg"),
             bumpMap: loader.load("./textures/01_earthbump1k.jpg"),
-            bumpScale: 0.04,
+            bumpScale: 0.01,
         });
         this.earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
         this.earthGroup.add(this.earthMesh);
