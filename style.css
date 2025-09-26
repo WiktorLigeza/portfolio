@@ -293,6 +293,12 @@ button:hover {
     display: none;
 }
 
+.logo_container {
+    position: absolute;
+    top: 20%;
+    right: 20%;
+}
+
 .stream-window.collapsed {
     width: auto;
     min-width: 150px;
