@@ -112,6 +112,12 @@ class ThreeJSViewer {
         this.cloudsMesh.scale.setScalar(1.003);
         this.earthGroup.add(this.cloudsMesh);
         
+        // Earth atmosphere glow using Fresnel material
+        const fresnelMaterial = this.getFresnelMat();
+        this.glowMesh = new THREE.Mesh(earthGeometry, fresnelMaterial);
+        this.glowMesh.scale.setScalar(1.01);
+        this.earthGroup.add(this.glowMesh);
+        
         // Moon group for orbital movement
         this.moonGroup = new THREE.Group();
         this.scene.add(this.moonGroup);
@@ -126,6 +132,55 @@ class ThreeJSViewer {
         this.moonMesh.position.set(2, 0, 0);
         this.moonMesh.scale.setScalar(0.27);
         this.moonGroup.add(this.moonMesh);
+    }
+
+    getFresnelMat({rimHex = 0x0088ff, facingHex = 0x000000} = {}) {
+        const uniforms = {
+            color1: { value: new THREE.Color(rimHex) },
+            color2: { value: new THREE.Color(facingHex) },
+            fresnelBias: { value: 0.1 },
+            fresnelScale: { value: 1.0 },
+            fresnelPower: { value: 4.0 },
+        };
+        const vs = `
+        uniform float fresnelBias;
+        uniform float fresnelScale;
+        uniform float fresnelPower;
+        
+        varying float vReflectionFactor;
+        
+        void main() {
+            vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+            vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+        
+            vec3 worldNormal = normalize( mat3( modelMatrix[0].xyz, modelMatrix[1].xyz, modelMatrix[2].xyz ) * normal );
+        
+            vec3 I = worldPosition.xyz - cameraPosition;
+        
+            vReflectionFactor = fresnelBias + fresnelScale * pow( 1.0 + dot( normalize( I ), worldNormal ), fresnelPower );
+        
+            gl_Position = projectionMatrix * mvPosition;
+        }
+        `;
+        const fs = `
+        uniform vec3 color1;
+        uniform vec3 color2;
+        
+        varying float vReflectionFactor;
+        
+        void main() {
+            float f = clamp( vReflectionFactor, 0.0, 1.0 );
+            gl_FragColor = vec4(mix(color2, color1, vec3(f)), f);
+        }
+        `;
+        const fresnelMat = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader: vs,
+            fragmentShader: fs,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+        });
+        return fresnelMat;
     }
 
     async initCamera() {
@@ -345,6 +400,9 @@ class ThreeJSViewer {
         }
         if (this.cloudsMesh) {
             this.cloudsMesh.rotation.y += 0.0023;
+        }
+        if (this.glowMesh) {
+            this.glowMesh.rotation.y += 0.002;
         }
         if (this.moonGroup) {
             this.moonGroup.rotation.y += 0.01;
